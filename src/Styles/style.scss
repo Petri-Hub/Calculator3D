@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,300;1,400&display=swap');
+
+$BUTTON_COLOR: #E5392D;
+$ESPECIAL_COLOR: #563177;
+$CALCULATOR_COLOR: #EF8D20;
+$BLUE_COLOR: #5EBBE4;
+
+@mixin borderColor($color, $scale: 1) {
+  border-top-color: darken($color, 5 * $scale);
+  border-left-color: darken($color, 10 * $scale);
+  border-right-color: darken($color, 10 * $scale);
+  border-bottom-color: darken($color, 20 * $scale);
+}
+
+@mixin defautlBorder {
+  border-bottom: 0px solid transparent;
+  border-left: 0px solid transparent;
+  border-right: 0px solid transparent;
+  border-top: 0px solid transparent;
+}
+
+body {
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: 'Roboto', sans-serif;
+}
+
+* {
+  font-family: 'Roboto', sans-serif;
+  box-sizing: border-box
+}
+
+.calculator {
+  @include defautlBorder;
+  @include borderColor($CALCULATOR_COLOR);
+  background-color: $CALCULATOR_COLOR;
+  width: min-content;
+  padding: 1rem;
+  border-radius: 20px;
+  display: grid;
+  row-gap: 1rem;
+  overflow: hidden;
+  scale: 1.5;
+  position: relative;
+
+  &::after {
+    content: '';
+    width: 93%;
+    height: 40%;
+    position: absolute;
+    top: 0.4rem;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: 15px 15px 3px 3px;
+    border: 5px solid darken($CALCULATOR_COLOR, 5);
+    border-bottom: transparent
+  }
+
+  &::before {
+    content: '';
+    width: 93%;
+    height: 40%;
+    position: absolute;
+    bottom: 0.4rem;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: 3px 3px 15px 15px;
+    border: 5px solid darken($CALCULATOR_COLOR, 5);
+    border-top: transparent
+  }
+
+  &__visor {
+    @include defautlBorder;
+    @include borderColor($CALCULATOR_COLOR);
+    box-shadow: inset 0 0 5px 0 rgba(0, 0, 0, 0.6);
+    padding: 0.7rem;
+    border-radius: 12px;
+    background-color: $BLUE_COLOR;
+
+    &__inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: right;
+      min-height: 50px;
+      background-color: #DDD;
+      border-radius: 6px;
+      position: relative;
+
+      &__calculation {
+        text-align: right;
+        padding: 0.5rem;
+        font-size: 20px;
+        font-weight: 700
+      }
+
+      &__total {
+        text-align: left;
+        position: absolute;
+        top: 0.25rem;
+        left: 0.25rem
+      }
+    }
+  }
+
+  &__grid {
+    @include defautlBorder;
+    @include borderColor($CALCULATOR_COLOR);
+    background-color: #AAA;
+    display: grid;
+    width: min-content;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 0.5rem;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    gap: 0.3rem;
+
+    &::after{
+      content: '';
+      border: 3px solid #BBB;
+      background-color: #BBB;
+      z-index: 1;
+      border-radius: 12px;
+      width: calc(100% - 1rem);
+      height: calc(100% - 1rem);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%)
+    }
+
+    &__button {
+      &[data-value="CE"],
+      &[data-value="C"],
+      &[data-value="*"],
+      &[data-value="/"],
+      &[data-value="+"],
+      &[data-value="-"],
+      &[data-value="."],
+      &[data-value="="] {
+        @include borderColor($ESPECIAL_COLOR, 1.5);
+        background-color: $ESPECIAL_COLOR;
+        div {
+          background-color: $ESPECIAL_COLOR;
+          &::after {
+            border: 3px solid darken($ESPECIAL_COLOR, 10);
+            border-top: 0;
+            border-left: 0;
+          }
+        }
+      }
+
+      @include defautlBorder;
+      @include borderColor($BUTTON_COLOR, 1.5);
+      min-width: 50px;
+      width: 100%;
+      padding: 0;
+      min-height: 50px;
+      z-index: 2;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      background-color: $BUTTON_COLOR;
+
+      &__text {
+        border-radius: 8px;
+        background-color: $BUTTON_COLOR;
+        display: grid;
+        overflow: hidden;
+        place-items: center;
+        position: relative;
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        width: 100%;
+        height: 100%;
+
+        &::after {
+          content: '';
+          width: 50%;
+          height: 50%;
+          border: 3px solid darken($BUTTON_COLOR, 10);
+          border-left: none;
+          border-top: none;
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          border-radius: 2px 2px 8px 2px;
+        }
+
+        &::before {
+          content: '';
+          width: 25%;
+          height: 25%;
+          border: 3px solid rgba(white, 0.25);
+          border-right: none;
+          border-bottom: none;
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          border-radius: 8px 2px 2px 2px;
+        }
+      }
+    }
+  }
+}
