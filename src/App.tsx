@@ -60,7 +60,8 @@ interface IBorderRelation {
 }
 
 function App() {
-   const [calculus, setCalculus] = useState<(string | number)[]>([])
+   const [curCalculus, setCurCalculus] = useState<(string | number)[]>([])
+   const [pastCalculus, setPastCalculus] = useState<(string | number)[]>([])
    const [lastPressedKey, setLastPressedKey] = useState<{ key: string, timestamp: number }>({ key: "", timestamp: Date.now() })
    const calcRef = useRef<HTMLDivElement>(null)
 
@@ -78,7 +79,7 @@ function App() {
       if (isTimeoutOn) return
 
       isTimeoutOn = true
-      setTimeout(() => (isTimeoutOn = false), getFPS(45))
+      setTimeout(() => (isTimeoutOn = false), getFPS(60))
 
       if (calcRef.current) {
          const allElements = getElements()
@@ -125,7 +126,7 @@ function App() {
    }
 
    function getAllBordersConfig(cursorPosition: IRelativeCursorPos): ICalcBorders {
-      const EXAGERATOR_AMOUNT = 1.5
+      const EXAGERATOR_AMOUNT = 1.75
       return {
          calcBorder: calculateBorder(cursorPosition, 15 * EXAGERATOR_AMOUNT, 0),
          buttonBorder: calculateBorder(cursorPosition, 5 * EXAGERATOR_AMOUNT, 1),
@@ -172,10 +173,8 @@ function App() {
       })
    }
 
-   function typeKey(event: KeyboardEvent) {
-      event.preventDefault()
-
-      const desiredButton = getElements().calcBtns.find(el => el.getAttribute("data-value") === event.key)
+   function typeKey({ key }: { key: string }) {
+      const desiredButton = getElements().calcBtns.find(el => el.getAttribute("data-value") === key)
 
       if (desiredButton) {
          const ANIMATION_DURATION = 50
@@ -184,7 +183,7 @@ function App() {
          setTimeout(() => desiredButton.style["scale"] = "1", ANIMATION_DURATION)
       }
 
-      setLastPressedKey({ key: event.key, timestamp: Date.now() })
+      setLastPressedKey({ key: key, timestamp: Date.now() })
    }
 
    function doAction(key: string) {
@@ -194,7 +193,7 @@ function App() {
       const isKeyEspecial = isCharEspecial(key)
 
       if (isKeyNumber) {
-         const lastItem = getLastArrItem(calculus)
+         const lastItem = getLastArrItem(curCalculus)
          const willPushAsNewItem = !lastItem || isCharOperator(lastItem)
 
          willPushAsNewItem
@@ -204,7 +203,7 @@ function App() {
          return
       }
       if (isKeyOperator) {
-         const lastItem = getLastArrItem(calculus)
+         const lastItem = getLastArrItem(curCalculus)
          const willReplaceLast = isCharOperator(lastItem)
 
          willReplaceLast
@@ -214,44 +213,111 @@ function App() {
          return
       }
       if (isKeyEspecial) {
-         console.log(key)
+         key === "=" && calculateAndSet()
+         key === "." && concatDotIfPossible()
+         key === "CE" && clearCalculus()
+         key === "C" && clearLastItem()
       }
    }
 
-   function replaceLastCalculusItem(key: string) {
-      const calcLength = calculus.length
-      const newArray = [...calculus.slice(0, calcLength - 1), key]
+   function clearLastItem(){
+      const newCalculusArr = [...curCalculus].slice(0, curCalculus.length - 1)
+      setCurCalculus(newCalculusArr)
+   }
 
-      setCalculus(newArray)
+   function clearCalculus(){
+      setCurCalculus([])
+      setPastCalculus([])
+   }
+
+   function concatDotIfPossible() {
+      const lastItem = getLastArrItem(curCalculus)
+      const alreadyHasDot = /\./.test(String(lastItem))
+      const isLastCharOperator = isCharOperator(getLastArrItem(curCalculus))
+
+      if (!alreadyHasDot) {
+         isLastCharOperator
+            ? pushNewCharToCalculus('0.')
+            : concatNumInCalculus('.')
+      }
+   }
+
+   function calculateAndSet() {
+      const escapedCalculation = escapeCalculusTrash(curCalculus)
+      const polishedCalculation = getPossibleCalculation(escapedCalculation)
+      let calculatedValue = null
+      
+      try{
+         calculatedValue = eval(polishedCalculation.join(""))
+      } catch(error){
+         calculatedValue = "ERROR"
+      }
+
+      setCurCalculus([calculatedValue])
+      setPastCalculus(curCalculus)
+   }
+
+   function escapeCalculusTrash(calculusArr: any[]){
+      return calculusArr.map(item => item.toString().replace(/[^0-9.+\-*/]/gi, ""))
+   }
+
+
+   function getPossibleCalculation(calculusArr: any[]) {
+      const operatorAmount = calculusArr.map(isCharOperator).filter(Boolean).length
+      const numberAmount = calculusArr.map(isStringNumber).filter(Boolean).length
+      const isOperationPossible = numberAmount === operatorAmount + 1
+
+      return isOperationPossible
+         ? polishCalculusArr(calculusArr)
+         : polishCalculusArr(calculusArr.slice(0, calculusArr.length - 1))
+   }
+
+   function polishCalculusArr(calculusArray: any[]) {
+      return calculusArray.map(item => {
+         return isCharOperator(item)
+            ? item
+            : parseFloat(item)
+      })
+   }
+
+   function replaceLastCalculusItem(key: string) {
+      const calcLength = curCalculus.length
+      const newArray = [...curCalculus.slice(0, calcLength - 1), key]
+
+      setCurCalculus(newArray)
    }
 
    function concatNumInCalculus(key: string) {
 
-      const calcArrLength = calculus.length
-      const lastCalculusItem = getLastArrItem(calculus)
+      const calcArrLength = curCalculus.length
+      const lastCalculusItem = getLastArrItem(curCalculus)
       const newLastItem = String(lastCalculusItem).concat(key)
 
-      setCalculus(calculus => [...calculus.slice(0, calcArrLength - 1), newLastItem])
+      setCurCalculus(calculus => [...calculus.slice(0, calcArrLength - 1), newLastItem])
    }
 
    function pushNewCharToCalculus(key: string) {
-      setCalculus(calculus => [...calculus, key])
+      setCurCalculus(calculus => [...calculus, key])
    }
 
    function isCharEspecial(char: string): boolean {
-      return ['CE', 'C', '='].includes(char)
+      return ['CE', 'C', '=', '.'].includes(char)
    }
 
-   function isCharNumber(char: string): boolean {
-      return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
+   function isCharNumber(char: string | number): boolean {
+      return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char.toString())
    }
 
-   function isCharOperator(char: string): boolean {
-      return ['-', '+', '/', '*'].includes(char)
+   function isCharOperator(char: string | number): boolean {
+      return ['-', '+', '/', '*'].includes(char.toString())
    }
 
    function getLastArrItem(array: any[]): any {
       return array[array.length - 1]
+   }
+
+   function isStringNumber(string: string | number) {
+      return /[0-9.]/gi.test(string.toString())
    }
 
    function calculateBorder(
@@ -313,13 +379,9 @@ function App() {
       ]
    }
 
-   function calculate(calculus: any){
-      return "1230"
-   }
-
    return (
       <div className="calculator" ref={calcRef}>
-         <Visor total={calculate(calculus)} calculation={calculus.join(" ")} />
+         <Visor total={pastCalculus.join(" ")} calculation={curCalculus.join(" ")} />
          <div className="calculator__grid">
             {getKeys().map(({ content, value, row, column }, index) => (
                <Button

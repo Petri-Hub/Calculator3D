@@ -91,14 +91,16 @@ body {
         text-align: right;
         padding: 0.5rem;
         font-size: 20px;
-        font-weight: 700
+        font-weight: 700;
+        color: $ESPECIAL_COLOR;
       }
 
       &__total {
+        color: $BUTTON_COLOR;
         text-align: left;
         position: absolute;
         top: 0.25rem;
-        left: 0.25rem
+        left: 0.25rem;
       }
     }
   }

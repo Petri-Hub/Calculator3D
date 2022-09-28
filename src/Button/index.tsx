@@ -1,4 +1,3 @@
-
 interface IFodasse{
    children: string,
    value: string,
@@ -10,7 +9,7 @@ interface IFodasse{
 export default function Button({ children, value, row, column, onClick }: IFodasse){
    return (
       <button 
-         onClick={() => onClick({ key: value })} 
+         onClick={() => onClick({ key: value})} 
          className="calculator__grid__button"
          style={{ gridRow: row, gridColumn: column}}
          data-value={value}>
